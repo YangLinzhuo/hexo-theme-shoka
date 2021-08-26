@@ -49,6 +49,25 @@ hexo.extend.generator.register('script', function(locals){
       hits     : theme.search.hits
     }
   }
+  
+  if (config.search) {
+    // search:
+    //   path: search.json # search.xml
+    //   field: post
+    //   format: html
+    //   limit: 10000
+    //   content: true
+    siteConfig.search = {
+      path : config.search.path,
+      field : config.search.post,
+      format: config.search.format,
+      limit: config.search.limit,
+      content: config.search.content,
+      unescape: config.search.unescape,
+      preload: config.search.preload,
+      trigger: config.search.trigger,
+    }
+  }
 
   if(theme.audio) {
     siteConfig.audio = theme.audio
