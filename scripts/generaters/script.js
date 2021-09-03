@@ -66,6 +66,7 @@ hexo.extend.generator.register('script', function(locals){
       unescape: config.search.unescape,
       preload: config.search.preload,
       trigger: config.search.trigger,
+      top_n_per_article: config.search.top_n_per_article,
     }
   }
 

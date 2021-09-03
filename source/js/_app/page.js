@@ -581,13 +581,13 @@ const localSearch = function(pjax) {
                           </i>
                         </span>
                       </div>
-                      <div class="results">
+                      <div class="results" id="search-results">
                         <div class="inner">
-                        <div id="search-stats">
-                        </div>
-                        <div id="search-hits">
-                        </div>
-                        <div id="search-pagination">
+                          <div id="search-stats">
+                          </div>
+                          <div id="search-hits">
+                          </div>
+                          <div id="search-pagination">
                         </div>
                       </div>
                     </div>
@@ -601,6 +601,7 @@ const localSearch = function(pjax) {
 
   // search DB path
   let searchPath = CONFIG.search.path;
+  console.log("search path:");
   console.log(searchPath);
   if (searchPath.length == 0) {
     searchPath = 'search.xml';
@@ -609,9 +610,12 @@ const localSearch = function(pjax) {
   }
 
   const input = $('.search-input'); // document.querySelector('.search-input');
-  // console.log(input);
-  const resultContent = document.getElementById('search-result');
-  // console.log(resultContent);
+  console.log("search input:");
+  console.log(input);
+  // const resultContent = document.getElementById('search-results');
+  const resultContent = document.getElementById('search-hits');
+  console.log("result content:");
+  console.log(resultContent);
 
   const getIndexByWord = (word, text, caseSensitive) => {
     if (CONFIG.search.unescape) {
@@ -683,7 +687,7 @@ const localSearch = function(pjax) {
     slice.hits.forEach(hit => {
       result += text.substring(prevEnd, hit.position);
       let end = hit.position + hit.length;
-      result += `<mark">${text.substring(hit.position, end)}</mark>`;
+      result += `<mark>${text.substring(hit.position, end)}</mark>`;
       prevEnd = end;
     });
     result += text.substring(prevEnd, slice.end);
@@ -692,6 +696,7 @@ const localSearch = function(pjax) {
 
   const inputEventFunction = () => {
     if (!isFetched) {
+      console.log("Data not fetched.");
       return;
     }
 
@@ -703,7 +708,7 @@ const localSearch = function(pjax) {
     let resultItems = [];
     if (searchText.length > 0) {
       // Perform local searching
-      datas.forEach(({title, content, url}) => {
+      datas.forEach(({categories, title, content, url}) => {
         let titleInLowerCase = title.toLowerCase();
         let contentInLowerCase = content.toLowerCase();
         let indexOfTitle = [];
@@ -726,6 +731,13 @@ const localSearch = function(pjax) {
               return itemLeft.word.length - item.word.length;
             });
           });
+
+          let slicesOfTitle = [];
+          if (indexOfTitle.length !== 0) {
+            let tmp = mergeIntoSlice(0, title.length, indexOfTitle, searchText);
+            searchTextCount += tmp.searchTextCountInSlice;
+            slicesOfTitle.push(tmp);
+          }
 
           let slicesOfContent = [];
           while (indexOfContent.length !== 0) {
@@ -759,24 +771,59 @@ const localSearch = function(pjax) {
           });
 
           // Select top N slices in content
-          let upperBound = parseInt(CONFIT.localsearch.top_n_per_article, 10);
+          let upperBound = parseInt(CONFIG.search.top_n_per_article, 10);
           if (upperBound >= 0) {
             slicesOfContent = slicesOfContent.slice(0, upperBound);
           }
 
           let resultItem = '';
-
+          // instantsearch.widgets.hits({
+          //   container: '#search-hits',
+          //   templates: {
+          //     item: function(data) {
+          //       console.log(data)
+          //       var cats = data.categories ? '<span>'+data.categories.join('<i class="ic i-angle-right"></i>')+'</span>' : '';
+          //       return '<a href="' + CONFIG.root + data.path +'">' + cats + 
+          //       '<b>' + data._highlightResult.title.value + '</b><br>' + 
+          //       data._snippetResult.contentStrip.value + '<br>( 匹配字词 : ' + 
+          //       data._highlightResult.contentStrip.matchedWords + ' ) | ( 匹配等级 : ' + 
+          //       data._highlightResult.contentStrip.matchLevel + ' )' + '</a>';
+          //     },
+          //     empty: function(data) {
+          //       return '<div id="hits-empty">'+
+          //           LOCAL.search.empty.replace(/\$\{query}/, data.query) +
+          //         '</div>';
+          //     }
+          //   },
+          //   cssClasses: {
+          //     item: 'item'
+          //   }
+          // }),
+          resultItem += '<div>';
+          // resultItem += '<div class="#search-hits">';
+          // resultItem += '<ol class="item">'
+          resultItem += '<li class="#search-hits item">'
+          // resultItem += '<li>';
+          var cats = categories.length > 0 ? '<span>' + categories.join('<i class="ic i-angle-right"></i>') + '</span>' : '';
+          resultItem += `<a href="${url}">` + cats;
           if (slicesOfTitle.length !== 0) {
-            resultItem += `<li><a href="${url}">${highlightKeyword(title, slicesOfTitle[0])}</a>`;
+            // resultItem += `<li><a href="${url}">${highlightKeyword(title, slicesOfTitle[0])}</a>`;
+            resultItem += `<b>${highlightKeyword(title, slicesOfTitle[0])}</b><br>`;
           } else {
-            resultItem += `<li><a href="${url}">${title}</a>`;
+            // resultItem += `<li><a href="${url}">${title}</a>`;
+            resultItem += `<b>${title}</b><br>`;
           }
 
           slicesOfContent.forEach(slice => {
-            resultItem += `<a href="${url}"><p>${highlightKeyword(content, slice)}...</p></a>`;
+            // resultItem += `<a href="${url}"><p>${highlightKeyword(content, slice)}...</p></a>`;
+            resultItem += `<li class="#search-hits item">${highlightKeyword(content, slice)}...</li>`;
           });
 
+          // resultItem += '</li>';
+          resultItem += '</a>';
           resultItem += '</li>';
+          // resultItem += '</ol>';
+          resultItem += '</div>';
           resultItems.push({
             item: resultItem,
             id  : resultItems.length,
@@ -810,7 +857,7 @@ const localSearch = function(pjax) {
       .then(response => response.text())
       .then(res => {
         // Get the contents from search data
-        isfetched = true;
+        isFetched = true;
         datas = isXml ? [...new DOMParser().parseFromString(res, 'text/xml').querySelectorAll('entry')].map(element => {
           return {
             title  : element.querySelector('title').textContent,
@@ -826,26 +873,30 @@ const localSearch = function(pjax) {
           return data;
         });
         // Remove loading animation
-        document.getElementById('no-result').innerHTML = '<i></i>';
+        console.log("isFetched: " + isFetched);
+        console.log("datas:");
+        console.log(datas);
+        document.getElementById('search-hits').innerHTML = '<i></i>';
         inputEventFunction();
       });
   };
 
   if (CONFIG.search.preload) {
+    console.log("fetch data.");
     fetchData();
   }
 
-  // if (CONFIG.search.trigger === 'auto') {
-  //   console.log(CONFIG.search.trigger);
-  //   input.addEventListener('input', inputEventFunction);
-  // } else {
-  //   document.querySelector('.search-icon').addEventListener('click', inputEventFunction);
-  //   input.addEventListener('keypress', event => {
-  //     if (event.key === 'Enter') {
-  //       inputEventFunction();
-  //     }
-  //   });
-  // }
+  if (CONFIG.search.trigger === 'auto') {
+    console.log(CONFIG.search.trigger);
+    input.addEventListener('input', inputEventFunction);
+  } else {
+    document.querySelector('.search-icon').addEventListener('click', inputEventFunction);
+    input.addEventListener('keypress', event => {
+      if (event.key === 'Enter') {
+        inputEventFunction();
+      }
+    });
+  }
 
   // Handle and trigger popup window
   document.querySelectorAll('.popup-trigger').forEach(element => {
@@ -853,101 +904,9 @@ const localSearch = function(pjax) {
       document.body.style.overflow = 'hidden';
       document.querySelector('.search-pop-overlay').classList.add('search-active');
       input.focus();
-      if (!isfetched) fetchData();
+      if (!isFetched) fetchData();
     });
   });
-
-  // var search = instantsearch({
-  //   indexName: CONFIG.search.indexName,
-  //   searchClient  : algoliasearch(CONFIG.search.appID, CONFIG.search.apiKey),
-  //   searchFunction: function(helper) {
-  //     var searchInput = $('.search-input');
-  //     if (searchInput.value) {
-  //       helper.search();
-  //     }
-  //   }
-  // });
-
-  // search.on('render', function() {
-  //   pjax.refresh($('#search-hits'));
-  // });
-
-  // // Registering Widgets
-  // search.addWidgets([
-  //   instantsearch.widgets.configure({
-  //     hitsPerPage: CONFIG.search.hits.per_page || 10
-  //   }),
-
-  //   instantsearch.widgets.searchBox({
-  //     container           : '.search-input-container',
-  //     placeholder         : LOCAL.search.placeholder,
-  //     searchOnEnterKeyPressOnly: true,  // Only search when press enter key
-  //     // Hide default icons of algolia search
-  //     showReset           : false,
-  //     showSubmit          : false,
-  //     showLoadingIndicator: false,
-  //     cssClasses          : {
-  //       input: 'search-input'
-  //     }
-  //   }),
-
-  //   instantsearch.widgets.stats({
-  //     container: '#search-stats',
-  //     templates: {
-  //       text: function(data) {
-  //         var stats = LOCAL.search.stats
-  //           .replace(/\$\{hits}/, data.nbHits)
-  //           .replace(/\$\{time}/, data.processingTimeMS);
-  //         return stats + '<span class="algolia-powered"></span><hr>';
-  //       }
-  //     }
-  //   }),
-
-  //   instantsearch.widgets.hits({
-  //     container: '#search-hits',
-  //     templates: {
-  //       item: function(data) {
-  //         console.log(data)
-  //         var cats = data.categories ? '<span>'+data.categories.join('<i class="ic i-angle-right"></i>')+'</span>' : '';
-  //         return '<a href="' + CONFIG.root + data.path +'">' + cats + 
-  //         '<b>' + data._highlightResult.title.value + '</b><br>' + 
-  //         data._snippetResult.contentStrip.value + '<br>( 匹配字词 : ' + 
-  //         data._highlightResult.contentStrip.matchedWords + ' ) | ( 匹配等级 : ' + 
-  //         data._highlightResult.contentStrip.matchLevel + ' )' + '</a>';
-  //       },
-  //       empty: function(data) {
-  //         return '<div id="hits-empty">'+
-  //             LOCAL.search.empty.replace(/\$\{query}/, data.query) +
-  //           '</div>';
-  //       }
-  //     },
-  //     cssClasses: {
-  //       item: 'item'
-  //     }
-  //   }),
-
-  //   instantsearch.widgets.pagination({
-  //     container: '#search-pagination',
-  //     scrollTo : false,
-  //     showFirst: false,
-  //     showLast : false,
-  //     templates: {
-  //       first   : '<i class="ic i-angle-double-left"></i>',
-  //       last    : '<i class="ic i-angle-double-right"></i>',
-  //       previous: '<i class="ic i-angle-left"></i>',
-  //       next    : '<i class="ic i-angle-right"></i>'
-  //     },
-  //     cssClasses: {
-  //       root        : 'pagination',
-  //       item        : 'pagination-item',
-  //       link        : 'page-number',
-  //       selectedItem: 'current',
-  //       disabledItem: 'disabled-item'
-  //     }
-  //   })
-  // ]);
-
-  // search.start();
 
   // Handle and trigger popup window
   $.each('.search', function(element) {
@@ -970,7 +929,7 @@ const localSearch = function(pjax) {
       onPopupClose();
     }
   });
-  
+
   $('.close-btn').addEventListener('click', onPopupClose);
   window.addEventListener('pjax:success', onPopupClose);
   window.addEventListener('keyup', function(event) {
