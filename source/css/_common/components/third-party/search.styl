@@ -101,13 +101,33 @@
 
 #search-hits {
   overflow-y: scroll;
-  height: calc(100% - 8.125rem);
+  height: calc(100% - 5.125rem);
 
   ol {
     padding: 0;
   }
 
   .item {
+    margin: 2rem 0;
+
+    a {
+      border-bottom: 0.1rem dashed var(--grey-4);
+      display: block;
+      the-transition();
+    }
+
+    span {
+      font-size: 70%;
+      display: block;
+
+      i {
+        color: var(--grey-4);
+        margin: 0 .3125rem;
+      }
+    }
+  }
+
+  .subitem {
     margin: .9375rem 0;
 
     a {

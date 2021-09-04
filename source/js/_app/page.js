@@ -418,8 +418,6 @@ const loadComments = function () {
 }
 
 const algoliaSearch = function(pjax) {
-  // 参考: 
-  // https://github.com/theme-next/hexo-theme-next/blob/d24c48efb1ff1182b23926a3835e350f9c3ab6eb/source/js/local-search.js
   if(CONFIG.search === null)
     return
 
@@ -588,6 +586,7 @@ const localSearch = function(pjax) {
                           <div id="search-hits">
                           </div>
                           <div id="search-pagination">
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -598,11 +597,16 @@ const localSearch = function(pjax) {
   let isFetched = false;
   let datas;
   let isXml = true;
+  let current_page = 0;
+  let article_per_page = parseInt(CONFIG.search.article_per_page, 10);
+  let total_pages = 0;
+  let max_page_on_show = 7; // 一次最多显示 7 个页码
+  let start_page = 0;
+  let end_page = 0;
+  let resultItems = [];
 
   // search DB path
   let searchPath = CONFIG.search.path;
-  console.log("search path:");
-  console.log(searchPath);
   if (searchPath.length == 0) {
     searchPath = 'search.xml';
   } else if (searchPath.endsWith('json')) {
@@ -610,12 +614,8 @@ const localSearch = function(pjax) {
   }
 
   const input = $('.search-input'); // document.querySelector('.search-input');
-  console.log("search input:");
-  console.log(input);
-  // const resultContent = document.getElementById('search-results');
   const resultContent = document.getElementById('search-hits');
-  console.log("result content:");
-  console.log(resultContent);
+  const paginationContent = document.getElementById('search-pagination');
 
   const getIndexByWord = (word, text, caseSensitive) => {
     if (CONFIG.search.unescape) {
@@ -694,6 +694,127 @@ const localSearch = function(pjax) {
     return result;
   };
 
+  const pagination = () => {
+    const addPrevPage = (current_page) => {
+      let classContent = '';
+      let numberContent = '';
+      if (current_page === 0) {
+        classContent = '#search-pagination pagination-item disabled-item';
+        numberContent = '<span class="#search-pagination page-number"><i class="ic i-angle-left"></i></span>';
+      } else {
+        classContent = '#search-pagination pagination-item';
+        numberContent = `<a class="#search-pagination page-number" aria-label="Prev" href="#">
+                          <i class="ic i-angle-left"></i>
+                        </a>`;
+      }
+      let prevPage = `<li class="${classContent}" id="prev-page">
+                        ${numberContent} 
+                      </li>`;
+      return prevPage;
+    };
+
+    const addNextPage = (current_page) => {
+      let classContent = '';
+      let numberContent = '';
+      if ((current_page + 1) === total_pages) {
+        classContent = '#search-pagination pagination-item disabled-item';
+        numberContent = '<span class="#search-pagination page-number"><i class="ic i-angle-right"></i></span>';
+      } else {
+        classContent = '#search-pagination pagination-item';
+        numberContent = `<a class="#search-pagination page-number" aria-label="Next" href="#">
+                          <i class="ic i-angle-right"></i>
+                        </a>`;
+      }
+      let nextPage = `<li class="${classContent}" id="next-page">
+                        ${numberContent} 
+                      </li>`;
+      return nextPage;
+    };
+
+    const addPage = (index, current_page) => {
+      let classContent = '';
+      let numberContent = `<a class="#search-pagination page-number" aria-label="${index + 1}" href="#">
+                            ${index + 1}
+                          </a>`;
+      if (index === current_page) {
+        classContent = '#search-pagination pagination-item current';
+      } else {
+        classContent = '#search-pagination pagination-item';
+      }
+      let page = `<li class="${classContent}" id="page-${index + 1}">
+                    ${numberContent} 
+                  </li>`;
+      return page;
+    }
+
+    const addPaginationEvents = (start_page, end_page) => {
+      if (total_pages <= 0) {
+        return;
+      }
+      const onPrevPageClick = (event) => {
+        if (current_page > 0) {
+          current_page -= 1;
+        }
+        if (current_page < start_page) {
+          start_page = current_page;
+          end_page = Math.min(end_page, start_page + max_page_on_show);
+        }
+        pagination();
+      };
+      const onNextPageClick = (event) => {
+        if ((current_page + 1) < total_pages) {
+          current_page += 1;
+        }
+        if (current_page > end_page) {
+          end_page = current_page;
+          start_page = Math.max(0, end_page - max_page_on_show);
+        }
+        pagination();
+      };
+      const onPageClick = (event) => {
+        let page_number = parseInt(event.target.ariaLabel);
+        console.log(`page ${page_number} clicked`);
+        current_page = page_number - 1; // note minus 1 here
+        pagination();
+      };
+      let prevPage = document.getElementById('prev-page');
+      prevPage.addEventListener('click', onPrevPageClick);
+      let nextPage = document.getElementById('next-page');
+      nextPage.addEventListener('click', onNextPageClick);
+      for (var i = start_page; i < end_page; i += 1) {
+        let page = document.getElementById(`page-${i + 1}`);
+        page.addEventListener('click', onPageClick);
+      }
+    };
+    
+    paginationContent.innerHTML = ''; // clear
+    let begin_index = Math.min(current_page * article_per_page, resultItems.length);
+    let end_index = Math.min(begin_index + article_per_page, resultItems.length);
+    resultContent.innerHTML = `${resultItems.slice(begin_index, end_index).map(result => result.item).join('')}`;
+    
+    start_page = Math.max(0, total_pages - max_page_on_show);
+    end_page = start_page + Math.min(total_pages, max_page_on_show);
+    let pageContent = '<div class="#search-pagination">';
+    pageContent += '<div class="#search-pagination pagination">';
+    pageContent += '<ul>';
+    if (total_pages > 0) {
+      // add prev page arrow, when no prev page not selectable
+      pageContent += addPrevPage(current_page);
+      for (let i = start_page; i < end_page; i += 1) {
+        pageContent += addPage(i, current_page);
+      }
+      // add next page arrow, when no next page not selectable
+      pageContent += addNextPage(current_page);
+    }
+    pageContent += '</ul>';
+    pageContent += '</div>';
+    pageContent += '</div>';
+    paginationContent.innerHTML = pageContent;
+    addPaginationEvents(start_page, end_page);
+    resultContent.scrollTop = 0;  // scroll to top
+    window.pjax && window.pjax.refresh(resultContent);
+  };
+
   const inputEventFunction = () => {
     if (!isFetched) {
       console.log("Data not fetched.");
@@ -705,10 +826,10 @@ const localSearch = function(pjax) {
     if (keywords.length > 1) {
       keywords.push(searchText);
     }
-    let resultItems = [];
+    resultItems = [];
     if (searchText.length > 0) {
       // Perform local searching
-      datas.forEach(({categories, title, content, url}) => {
+      datas.forEach(({categories, title, content, url}, index) => {
         let titleInLowerCase = title.toLowerCase();
         let contentInLowerCase = content.toLowerCase();
         let indexOfTitle = [];
@@ -745,7 +866,7 @@ const localSearch = function(pjax) {
             let {position, word} = item;
             // Cut out 100 characters
             let start = position - 20;
-            let end = position + 80;
+            let end = position + 30;
             if (start < 0) {
               start = 0;
             }
@@ -777,34 +898,12 @@ const localSearch = function(pjax) {
           }
 
           let resultItem = '';
-          // instantsearch.widgets.hits({
-          //   container: '#search-hits',
-          //   templates: {
-          //     item: function(data) {
-          //       console.log(data)
-          //       var cats = data.categories ? '<span>'+data.categories.join('<i class="ic i-angle-right"></i>')+'</span>' : '';
-          //       return '<a href="' + CONFIG.root + data.path +'">' + cats + 
-          //       '<b>' + data._highlightResult.title.value + '</b><br>' + 
-          //       data._snippetResult.contentStrip.value + '<br>( 匹配字词 : ' + 
-          //       data._highlightResult.contentStrip.matchedWords + ' ) | ( 匹配等级 : ' + 
-          //       data._highlightResult.contentStrip.matchLevel + ' )' + '</a>';
-          //     },
-          //     empty: function(data) {
-          //       return '<div id="hits-empty">'+
-          //           LOCAL.search.empty.replace(/\$\{query}/, data.query) +
-          //         '</div>';
-          //     }
-          //   },
-          //   cssClasses: {
-          //     item: 'item'
-          //   }
-          // }),
-          resultItem += '<div>';
+          resultItem += '<div class="#search-hits item">';
           // resultItem += '<div class="#search-hits">';
           // resultItem += '<ol class="item">'
-          resultItem += '<li class="#search-hits item">'
+          resultItem += '<li>'
           // resultItem += '<li>';
-          var cats = categories.length > 0 ? '<span>' + categories.join('<i class="ic i-angle-right"></i>') + '</span>' : '';
+          var cats = categories !== undefined ? '<span>' + categories.join('<i class="ic i-angle-right"></i>') + '</span>' : '<span>No categories</span>';
           resultItem += `<a href="${url}">` + cats;
           if (slicesOfTitle.length !== 0) {
             // resultItem += `<li><a href="${url}">${highlightKeyword(title, slicesOfTitle[0])}</a>`;
@@ -816,7 +915,7 @@ const localSearch = function(pjax) {
 
           slicesOfContent.forEach(slice => {
             // resultItem += `<a href="${url}"><p>${highlightKeyword(content, slice)}...</p></a>`;
-            resultItem += `<li class="#search-hits item">${highlightKeyword(content, slice)}...</li>`;
+            resultItem += `<li class="#search-hits subitem">${highlightKeyword(content, slice)} ...</li>`;
           });
 
           // resultItem += '</li>';
@@ -847,9 +946,10 @@ const localSearch = function(pjax) {
         }
         return resultRight.id - resultLeft.id;
       });
-      resultContent.innerHTML = `<ul>${resultItems.map(result => result.item).join('')}</ul>`;
-      window.pjax && window.pjax.refresh(resultContent);
     }
+    // Do pagination
+    total_pages = Math.ceil(resultItems.length / article_per_page);
+    pagination();
   }
 
   const fetchData = () => {
@@ -918,7 +1018,7 @@ const localSearch = function(pjax) {
     });
   });
 
-  // // Monitor main search box
+  // Monitor main search box
   const onPopupClose = function() {
     document.body.style.overflow = '';
     transition(siteSearch, 0); // "transition.shrinkOut"
