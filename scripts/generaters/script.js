@@ -2,7 +2,6 @@
 const fs = require('hexo-fs');
 const url = require('url');
 
-
 hexo.extend.generator.register('script', function(locals){
   const config = hexo.config;
   const theme = hexo.theme.config;

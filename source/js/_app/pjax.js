@@ -50,7 +50,6 @@ const pjaxReload = function () {
 const siteRefresh = function (reload) {
   LOCAL_HASH = 0
   LOCAL_URL = window.location.href
-
   vendorCss('katex');
   vendorJs('copy_tex');
   vendorCss('mermaid');
@@ -64,6 +63,34 @@ const siteRefresh = function (reload) {
     options.lazyload = lazyload;
 
     new MiniValine(options);
+    
+    // Wakeup Leancloud
+    console.log("Try to wakeup Leancloud");
+    var engine = document.cookie.replace(/(?:(?:^|.*;\s*)engine\s*\=\s*([^;]*).*$)|^.*$/, "$1") || '0';
+    if(engine != '1') {
+      fetch('https://quan.suning.com/getSysTime.do')
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(date) {
+        // var hours = new Date(date.sysTime2).getHours();
+        // if(hours>7 && hours<23){
+        const url = 'https://linn-blog.avosapps.us';  // 注意不要添加 stg 前缀
+        fetch(url)
+        .then(function(response) {
+          const html = response.status;
+          var result = url + " Status：" + html;
+          console.log(result);
+        });
+        
+        var exp = new Date(date.sysTime2);
+        exp.setTime(exp.getTime() + 10*60*1000);  // 10 分钟内刷新不再重新请求
+        document.cookie = "engine=1;path=/;expires="+ exp.toGMTString();
+        // }
+      })
+    } else {
+      console.log("Cookie not expired. No need to wakeup.");
+    }
 
     setTimeout(function(){
       positionInit(1);

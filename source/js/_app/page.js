@@ -478,7 +478,6 @@ const algoliaSearch = function(pjax) {
       container: '#search-hits',
       templates: {
         item: function(data) {
-          console.log(data)
           var cats = data.categories ? '<span>'+data.categories.join('<i class="ic i-angle-right"></i>')+'</span>' : '';
           return '<a href="' + CONFIG.root + data.path +'">' + cats + 
           '<b>' + data._highlightResult.title.value + '</b><br>' + 
@@ -553,7 +552,6 @@ const algoliaSearch = function(pjax) {
 const localSearch = function(pjax) {
   // 参考 hexo next 主题的配置方法
   // 参考 https://qiuyiwu.github.io/2019/01/25/Hexo-LocalSearch/ 博文
-  console.log(CONFIG.search);
   if(CONFIG.search === null)
     return
 
@@ -773,7 +771,6 @@ const localSearch = function(pjax) {
       };
       const onPageClick = (event) => {
         let page_number = parseInt(event.target.ariaLabel);
-        console.log(`page ${page_number} clicked`);
         current_page = page_number - 1; // note minus 1 here
         pagination();
       };
@@ -973,9 +970,6 @@ const localSearch = function(pjax) {
           return data;
         });
         // Remove loading animation
-        console.log("isFetched: " + isFetched);
-        console.log("datas:");
-        console.log(datas);
         document.getElementById('search-hits').innerHTML = '<i></i>';
         inputEventFunction();
       });
@@ -987,7 +981,6 @@ const localSearch = function(pjax) {
   }
 
   if (CONFIG.search.trigger === 'auto') {
-    console.log(CONFIG.search.trigger);
     input.addEventListener('input', inputEventFunction);
   } else {
     document.querySelector('.search-icon').addEventListener('click', inputEventFunction);
