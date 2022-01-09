@@ -61,7 +61,6 @@ const siteRefresh = function (reload) {
     options.pathname = LOCAL.path;
     options.pjax = pjax;
     options.lazyload = lazyload;
-
     new MiniValine(options);
     
     // Wakeup Leancloud

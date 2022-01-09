@@ -17,7 +17,11 @@ hexo.extend.filter.register('after_post_render', data => {
     // Exit if the url has same host with `config.url`, which means it's an internal link.
     let link = url.parse(href);
     if (!link.protocol || link.hostname === siteHost) return match;
-
+    var reg = /title="([^"]+)"/im;
+    let result = reg.exec(match);
+    if (result !== null && result.length > 1) {
+      return `<span class="exturl" data-url="${Buffer.from(href).toString('base64')}" title="${result[1]}">${html}</span>`;
+    }
     return `<span class="exturl" data-url="${Buffer.from(href).toString('base64')}">${html}</span>`;
   });
 
