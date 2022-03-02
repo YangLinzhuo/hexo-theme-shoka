@@ -86,7 +86,9 @@ font:
 
 # project of https://www.iconfont.cn/
 # //at.alicdn.com/t/font_1832207_c8i9n1ulxlt.css => 1832207_c8i9n1ulxlt
-iconfont: "1832207_igi8uaupcus"
+# iconfont: "1832207_igi8uaupcus"
+# //at.alicdn.com/t/font_3203733_owl09qgx1q.css
+iconfont: "3203733_owl09qgx1q"
 
 menu:
   home: / || home
