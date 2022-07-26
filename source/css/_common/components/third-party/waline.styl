@@ -1,3 +1,15 @@
+.waline-container {
+    background-color: var(--card-background);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--shadow-l1);
+    padding: 3%; /*缩小边距*/
+
+}
+.waline-container .vcount {
+    color: var(--card-text-color-main);
+}
+
+
 /* 日间模式 */
 :root {
   /* 字体大小 */
@@ -42,4 +54,44 @@
   --waline-border: 1px solid var(--waline-border-color);
   --waline-avatar-radius: 50%;
   --waline-box-shadow: none;
+}
+
+
+
+
+/* 夜间模式 */
+:root[data-theme="dark"] {
+  --waline-theme-color: var(--primary-color) !important; /* 主题颜色 */
+  --waline-white: #ddd !important; /* 按键字体颜色 */
+  --waline-active-color: #ff6680 !important;
+  --waline-light-grey: #666 !important;
+  --waline-dark-grey: rgba(140, 74, 85, 0.6) !important; /*ID 颜色 */
+  --waline-badge-color: rgba(140, 74, 85, 0.6) !important;
+
+  /* 布局颜色 */
+  --waline-text-color: #ccc !important;
+  --waline-bgcolor: #424242 !important;
+  --waline-bgcolor-light: #515151 !important;/* 行内代码块颜色 */
+  --waline-border-color: #9B9C9C !important;
+  --waline-disable-bgcolor: #444;
+  --waline-disable-color: #272727;
+
+  /* 特殊颜色 */
+  --waline-bq-color:  #9B9C9C; /*quote*/
+
+  /* 其他颜色 */
+  --waline-info-bgcolor: rgba(140, 74, 85, 0.6);
+  --waline-info-color: #aaa;
+}
+
+
+
+.v input, .v textarea {
+  font-size: 0.85em !important
+}
+
+
+.v[data-class=v] .vcard .vcontent .vemoji {
+	width:2.2em; /*表情包大小修改*/
+	margin:.25em
 }

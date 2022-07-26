@@ -108,7 +108,7 @@
       stats: "{{ __('search.stats') }}"
     },
     {%- if theme.widgets.recent_comments or page.comment !== false  %}
-    valine: {{ page.valine|safedump if page.valine else "true"  }},
+    {# valine: {{ page.valine|safedump if page.valine else "true"  }}, #}
     waline: {{ page.waline|safedump if page.gitalk else "true"  }},{%- endif %}
     {%- if page.chart %}chart: true,{%- endif %}
     {%- if page.math %}copy_tex: true,

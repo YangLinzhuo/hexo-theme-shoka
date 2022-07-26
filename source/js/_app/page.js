@@ -415,11 +415,13 @@ const loadComments = function () {
   }
 
   if (!window.IntersectionObserver) {
-    vendorCss('valine');
+    vendorCss('waline');
+    // vendorCss('valine');
   } else {
     var io = new IntersectionObserver(function(entries, observer) {
       var entry = entries[0];
-      vendorCss('valine');
+      vendorCss('waline');
+      // vendorCss('valine');
       if (entry.isIntersecting || entry.intersectionRatio > 0) {
         transition($('#comments'), 'bounceUpIn');
         observer.disconnect();
