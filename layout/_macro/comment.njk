@@ -1,5 +1,9 @@
 {% macro render() %}
 {%- if page.comment !== false %}
-  <div class="wrap" id="comments"></div>
+    <div class="wrap" id="comments">
+      {%- if theme.waline.serverURL %}
+        <div id="waline-container"></div>
+      {% endif %}
+    </div>
 {%- endif %}
 {% endmacro %}

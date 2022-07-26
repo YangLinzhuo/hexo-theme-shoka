@@ -54,48 +54,99 @@ const siteRefresh = function (reload) {
   vendorJs('copy_tex');
   vendorCss('mermaid');
   vendorJs('chart');
-  vendorJs('valine', function() {
-    var options = Object.assign({}, CONFIG.valine);
-    options = Object.assign(options, LOCAL.valine||{});
-    options.el = '#comments';
-    options.pathname = LOCAL.path;
-    options.pjax = pjax;
-    options.lazyload = lazyload;
-    new MiniValine(options);
-    
-    // Wakeup Leancloud
-    console.log("Try to wakeup Leancloud");
-    var engine = document.cookie.replace(/(?:(?:^|.*;\s*)engine\s*\=\s*([^;]*).*$)|^.*$/, "$1") || '0';
-    if(engine != '1') {
-      fetch('https://quan.suning.com/getSysTime.do')
-      .then(function(response) {
-        return response.json();
-      })
-      .then(function(date) {
-        // var hours = new Date(date.sysTime2).getHours();
-        // if(hours>7 && hours<23){
-        const url = 'https://linn-blog.avosapps.us';  // 注意不要添加 stg 前缀
-        fetch(url)
-        .then(function(response) {
-          const html = response.status;
-          var result = url + " Status：" + html;
-          console.log(result);
-        });
-        
-        var exp = new Date(date.sysTime2);
-        exp.setTime(exp.getTime() + 10*60*1000);  // 10 分钟内刷新不再重新请求
-        document.cookie = "engine=1;path=/;expires="+ exp.toGMTString();
-        // }
-      })
-    } else {
-      console.log("Cookie not expired. No need to wakeup.");
-    }
 
-    setTimeout(function(){
-      positionInit(1);
-      postFancybox('.v');
-    }, 1000);
-  }, window.MiniValine);
+  if(CONFIG.waline.serverURL) {
+    vendorJs('waline', function() {
+      var options = Object.assign({}, CONFIG.waline);
+      options = Object.assign(options, LOCAL.waline||{});
+      options.el = '#comments';
+      options.pathname = LOCAL.path;
+      options.pjax = pjax;
+      options.lazyload = lazyload;
+
+      new Waline(options);
+
+      setTimeout(function(){
+        positionInit(1);
+        postFancybox('.waline-container');
+      }, 1000);
+    }, window.Waline);
+  }
+
+  if (CONFIG.waline.serverURL) {
+    window.addEventListener('load', function() {
+      var t = document.querySelector(".leancloud-recent-comment");
+    function renderTime(date) {
+        let myDate = new Date(date).toJSON();
+        return new Date(+new Date(myDate) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '')
+    }
+    function formatTime(time) {
+        let d = Math.floor(time / (1000 * 60 * 60 * 24));
+        let h = Math.floor(time / (1000 * 60 * 60) % 24);
+        let m = Math.floor(time / (1000 * 60) % 60);
+        let s = Math.floor(time / 1000 % 60);
+        if (d > 0) {
+            return d + ' 天前'
+        } else if (h > 0) {
+            return h + ' 小时前'
+        } else if (m > 0) {
+            return m + ' 分钟前'
+        } else if (s > 0) {
+            return s + ' 秒钟前'
+        }
+
+    }
+    let str = ' @ '
+    let reg = /<.*?>/ig;
+    let date = new Date();
+    let url = CONFIG.waline.serverURL;
+    let count = 10;
+    var t = document.querySelector(".leancloud-recent-comment");
+    if (t && !t.classList.contains("loaded")) {
+      console.log("load recent comments");
+      fetch(url+'/comment?type=recent&count='+count)
+        .then(response => response.json())
+        .then(data => {
+            let arr = data.filter(item => item.pid !== undefined);
+            let i = arr.length;
+            console.log("total " + i + " comments");
+            for (var r = "", o = 0; o < i; o++) {
+                let comment = arr[o].comment.replace(reg, '');
+                let gap = formatTime(date - new Date(renderTime(arr[o].createdAt)))
+                r += `<li class="item"><a href="${arr[o].url + '#' + arr[o].objectId}">
+                    <span class="breadcrumb">${arr[o].nick + str + gap}</span>
+                    <span>${comment}</span></a></li>`;
+                t.innerHTML = r;
+                t.classList.add("loaded"); 
+                // e.config.pjax && e.config.pjax.refresh(t)
+            }
+        }).catch(console.error)
+      }
+    })
+  }
+
+  if (CONFIG.waline.serverURL) {
+    window.addEventListener('load', function() {
+      var t = document.querySelector(".leancloud-visitors-count");
+    let path = window.location.pathname;
+    let url = CONFIG.waline.serverURL;
+    var t = document.querySelector(".leancloud-visitors-count");
+    if (t) {
+      console.log("Load page views");
+      console.log("Current page path: " + path);
+      let https = url+'/article?path='+path;
+      // console.log("Get " + https);
+      fetch(https)
+        .then(response => response.json())
+        .then(data => {
+          // console.log(data);
+          // let pageview = parseInt(response);
+          console.log("Pageview: " + data);
+          t.innerHTML = data;
+        }).catch(console.error)
+    }
+    })
+  }
 
   if(!reload) {
     $.each('script[data-pjax]', pjaxScript);
