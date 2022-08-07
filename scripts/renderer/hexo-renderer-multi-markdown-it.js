@@ -15,16 +15,26 @@ const default_plugins = [
   'markdown-it-task-checkbox',
   'markdown-it-toc-and-anchor',
   'markdown-it-pangu',
+  
+  'markdown-it-container',
+//   'markdown-it-furigana',
+  'markdown-it-katex',
+  'markdown-it-mermaid',
+//   'markdown-it-graphviz',
+  'markdown-it-prism',
+  'markdown-it-chart',
+//   'markdown-it-spoiler',
+//    'markdown-it-excerpt'
 
-  './markdown-it-container',
+//   './markdown-it-container',
   './markdown-it-furigana',
-  './markdown-it-katex',
-  './markdown-it-mermaid',
+//   './markdown-it-katex',
+//   './markdown-it-mermaid',
   './markdown-it-graphviz',
-  './markdown-it-prism',
-  './markdown-it-chart',
+//   './markdown-it-prism',
+//   './markdown-it-chart',
   './markdown-it-spoiler',
-  './markdown-it-excerpt'
+//   './markdown-it-excerpt'
 ];
 
 /**
