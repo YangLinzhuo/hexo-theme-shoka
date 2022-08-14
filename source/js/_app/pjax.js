@@ -55,43 +55,44 @@ const siteRefresh = function (reload) {
   vendorCss('mermaid');
   vendorJs('chart');
 
-  // if(CONFIG.valine.appId && CONFIG.valine.appKey) {
-  //   vendorJs('valine', function() {
-  //     var options = Object.assign({}, CONFIG.valine);
-  //     options = Object.assign(options, LOCAL.valine||{});
-  //     options.el = '#comments';
-  //     options.pathname = LOCAL.path;
-  //     options.pjax = pjax;
-  //     options.lazyload = lazyload;
-
-  //     new MiniValine(options);
-
-  //     setTimeout(function(){
-  //       positionInit(1);
-  //       postFancybox('.v');
-  //     }, 1000);
-  //   }, window.MiniValine);
-  // }
-
-  if(CONFIG.waline.serverURL) {
-    vendorJs('waline', function() {
-      var options = Object.assign({}, CONFIG.waline);
-      options = Object.assign(options, LOCAL.waline||{});
+  if(CONFIG.valine.appId && CONFIG.valine.appKey) {
+    vendorJs('valine', function() {
+      var options = Object.assign({}, CONFIG.valine);
+      options = Object.assign(options, LOCAL.valine||{});
       options.el = '#comments';
       options.pathname = LOCAL.path;
       options.pjax = pjax;
       options.lazyload = lazyload;
-      options.pageview = '.leancloud-visitors-count'
-      // options.pageview = true;
 
-      new Waline(options);
+      new MiniValine(options);
 
       setTimeout(function(){
         positionInit(1);
-        postFancybox('.waline-container');
+        postFancybox('.v');
       }, 1000);
-    }, window.Waline);
+    }, window.MiniValine);
   }
+
+
+  // if(CONFIG.waline.serverURL) {
+  //   vendorJs('waline', function() {
+  //     var options = Object.assign({}, CONFIG.waline);
+  //     options = Object.assign(options, LOCAL.waline||{});
+  //     options.el = '#comments';
+  //     options.pathname = LOCAL.path;
+  //     options.pjax = pjax;
+  //     options.lazyload = lazyload;
+  //     options.pageview = '.leancloud-visitors-count'
+  //     // options.pageview = true;
+
+  //     new Waline(options);
+
+  //     setTimeout(function(){
+  //       positionInit(1);
+  //       postFancybox('.waline-container');
+  //     }, 1000);
+  //   }, window.Waline);
+  // }
 
   if(!reload) {
     $.each('script[data-pjax]', pjaxScript);
@@ -239,9 +240,27 @@ const getRecentComments = function () {
   }
 }
 
+const wakeUpLeanCloud = function () {
+  console.log("Try to wakeup Leancloud");
+  const url = 'https://linn-blog.avosapps.us';  // 注意不要添加 stg 前缀
+  fetch(url)
+  .then(function(response) {
+      const html = response.status;
+      var result = url + " Status：" + html;
+      console.log(result);
+  });
+}
+
 window.addEventListener('DOMContentLoaded', siteInit);
 
-window.addEventListener('DOMContentLoaded', getPageView);
+window.addEventListener('DOMContentLoaded', wakeUpLeanCloud);
+
+window.addEventListener('hashchange', wakeUpLeanCloud);
+
+// window.addEventListener('popstate', wakeUpLeanCloud);
+// window.addEventListener('pageshow', wakeUpLeanCloud);
+
+// window.addEventListener('DOMContentLoaded', getPageView);
 
 // window.addEventListener('popstate', getPageView);
 
@@ -249,7 +268,7 @@ window.addEventListener('DOMContentLoaded', getPageView);
 
 // window.addEventListener('pageshow', getPageView);
 
-window.addEventListener('DOMContentLoaded', getRecentComments);
+// window.addEventListener('DOMContentLoaded', getRecentComments);
 
 console.log('%c Theme.Shoka v' + CONFIG.version + ' %c https://shoka.lostyu.me/ ', 'color: white; background: #e9546b; padding:5px 0;', 'padding:4px;border:1px solid #e9546b;')
 
