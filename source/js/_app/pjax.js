@@ -221,7 +221,8 @@ const getRecentComments = function () {
       fetch(url+'/comment?type=recent&count='+count)
         .then(response => response.json())
         .then(data => {
-            let arr = data.filter(item => item.pid !== undefined);
+            // let arr = data.filter(item => item.pid !== undefined);
+            let arr = data.filter(item => item.nick !== "Linn")
             let i = arr.length;
             console.log("total " + i + " comments");
             for (var r = "", o = 0; o < i; o++) {
@@ -241,7 +242,7 @@ const getRecentComments = function () {
 
 window.addEventListener('DOMContentLoaded', siteInit);
 
-window.addEventListener('DOMContentLoaded', getPageView);
+// window.addEventListener('DOMContentLoaded', getPageView);
 
 // window.addEventListener('popstate', getPageView);
 

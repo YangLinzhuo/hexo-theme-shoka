@@ -9,7 +9,7 @@
   </span>
   {%- endif %}
 
-  {%- if theme.valine.appId and theme.valine.appKey and theme.valine.visitor %}
+  {# {%- if theme.valine.appId and theme.valine.appKey and theme.valine.visitor %}
   <span id="{{ page.path | replace('index.html', '') }}" class="item leancloud_visitors" data-flag-title="{{ post.title }}" title="{{ __('post.views') }}">
       <span class="icon">
         <i class="ic i-eye"></i>
@@ -30,5 +30,17 @@
       <span class="leancloud-visitors-count"></span>
       <span class="text">{{ __('symbols_count_time.view') }}</span>
   </span>
+  {%- endif %} #}
+
+
+  {%- if theme.waline.visitor %}
+    <span id="/{{ page.path | replace('index.html', '') }}" class="leancloud_visitors">
+      <span class="icon">
+          <i class="ic i-eye"></i>
+      </span>
+      <span class="text">{{ __('post.views') }}</span>
+        <i class="leancloud-visitors-count"></i>
+      <span class="text">{{ __('symbols_count_time.view') }}</span>
+    </span>
   {%- endif %}
 </div>
