@@ -222,7 +222,8 @@ const getRecentComments = function () {
         .then(response => response.json())
         .then(data => {
             // let arr = data.filter(item => item.pid !== undefined);
-            let arr = data.filter(item => item.nick !== "Linn")
+            // let arr = data.filter(item => item.nick !== CONFIG.author)
+            let arr = data;
             let i = arr.length;
             console.log("total " + i + " comments");
             for (var r = "", o = 0; o < i; o++) {
